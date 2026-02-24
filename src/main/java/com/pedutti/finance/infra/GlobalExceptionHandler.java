@@ -16,10 +16,10 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(EntityNotFoundException.class)
     public ResponseEntity<ErrorResponse> handle404() {
         var error = new ErrorResponse(
-                LocalDateTime.now(),
-                HttpStatus.NOT_FOUND.value(),
-                "Recurso não encontrado",
-                "O ID informado não existe na nossa base de dados."
+            LocalDateTime.now(),
+            HttpStatus.NOT_FOUND.value(),
+            "Recurso não encontrado",
+            "O ID informado não existe na nossa base de dados."
         );
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
     }
@@ -29,21 +29,21 @@ public class GlobalExceptionHandler {
         var errors = ex.getFieldErrors();
 
         return ResponseEntity.badRequest().body(
-                errors.stream()
-                        .map(e -> new ErrorResponse(
-                                LocalDateTime.now(),
-                                HttpStatus.BAD_REQUEST.value(),
-                                "Requisição inválida",
-                                e))
-                        .toList()
+            errors.stream()
+                .map(e -> new ErrorResponse(
+                    LocalDateTime.now(),
+                    HttpStatus.BAD_REQUEST.value(),
+                    "Requisição inválida",
+                    e))
+                .toList()
         );
     }
 
     public record ErrorResponse(
-            LocalDateTime timestamp,
-            Integer status,
-            String error,
-            String message) {
+        LocalDateTime timestamp,
+        Integer status,
+        String error,
+        String message) {
 
         public ErrorResponse(LocalDateTime timestamp, Integer status, String error, FieldError fieldError) {
             this(
