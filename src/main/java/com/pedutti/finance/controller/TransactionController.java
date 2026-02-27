@@ -3,7 +3,6 @@ package com.pedutti.finance.controller;
 import com.pedutti.finance.domain.transaction.*;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -13,50 +12,44 @@ import java.util.List;
 @RequestMapping("/transactions")
 public class TransactionController {
 
-    private final TransactionRepository transactionRepository;
+    private final TransactionService transactionService;
 
-    public TransactionController(TransactionRepository transactionRepository) {
-        this.transactionRepository = transactionRepository;
+    public TransactionController(TransactionService transactionService) {
+        this.transactionService = transactionService;
     }
 
     @GetMapping
     public ResponseEntity<List<ListTransactionsResponseDTO>> listTransactions(){
-        var allTransactions = transactionRepository.findAll().stream().map(ListTransactionsResponseDTO::new).toList();
+        var allTransactions = transactionService.listTransactions();
 
         return ResponseEntity.ok(allTransactions);
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<TransactionDetailDTO> getTransactionById(@PathVariable Long id) {
-        var transaction = transactionRepository.getReferenceById(id);
+        var transaction = transactionService.getTransactionById(id);
 
-        return ResponseEntity.ok(new TransactionDetailDTO(transaction));
+        return ResponseEntity.ok(transaction);
     }
 
     @PostMapping
-    @Transactional
     public ResponseEntity<TransactionDetailDTO> registerTransaction(@RequestBody @Valid TransactionRequestDTO request, UriComponentsBuilder uriBuilder){
-        var transaction = new Transaction(request);
-        transactionRepository.save(transaction);
-
+        var transaction = transactionService.createTransaction(request);
         var uri = uriBuilder.path("/transactions/{id}").buildAndExpand(transaction.getId()).toUri();
 
         return ResponseEntity.created(uri).body(new TransactionDetailDTO(transaction));
     }
 
     @PutMapping
-    @Transactional
     public ResponseEntity<TransactionDetailDTO> updateTransaction(@RequestBody @Valid UpdateTransactionRequestDTO request){
-        var transaction = transactionRepository.getReferenceById(request.id());
-        transaction.updateTransaction(request);
+        var transaction = transactionService.updateTransaction(request);
 
         return ResponseEntity.ok(new TransactionDetailDTO(transaction));
     }
 
     @DeleteMapping("/{id}")
-    @Transactional
     public ResponseEntity<Void> deleteTransaction(@PathVariable Long id){
-        transactionRepository.deleteById(id);
+        transactionService.deleteTransaction(id);
 
         return ResponseEntity.noContent().build();
     }
